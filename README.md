@@ -9,7 +9,7 @@ See https://github.com/takari/maven-wrapper for more information regarding maven
 Requirements:
 * JDK 7 or newer (Oracle or OpenJDK both work fine.)
 
-Install Ivshmem4j to your local maven repository (see https://github.com/AlexanderSchuetz97/Ivshmem4j)<br>
+Install Ivshmem4j 1.0 to your local maven repository (see https://github.com/AlexanderSchuetz97/Ivshmem4j)<br>
 Once Ivshmem4j is installed to your local maven reposity run:
 ````
 ./mvnw clean package
