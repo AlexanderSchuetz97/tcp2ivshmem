@@ -43,7 +43,7 @@ public class TcpSocketContainer {
     }
 
     public boolean isID(int id) {
-        if (id < offset || id-offset > getSize()) {
+        if (id < offset || id-offset >= getSize()) {
             return false;
         }
 

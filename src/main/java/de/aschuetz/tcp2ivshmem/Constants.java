@@ -28,9 +28,9 @@ public class Constants {
     //Spintimes
     public static final int SPIN_CONNECT = 1000;
     public static final int SPIN_WATCHDOG = 1000;
-    //TODO turn this into parameter
-    public static final int SPIN_DATA_WITHOUT_INTERRUPTS = 10;
-    public static final int SPIN_DATA_WITH_INTERRUPTS = 1000;
+
+    public static final int DEFAULT_SPIN_DATA_WITHOUT_INTERRUPTS = 10;
+    public static final int DEFAULT_SPIN_DATA_WITH_INTERRUPTS = 1000;
     public static final int SPIN_SOCKET_QUEUE = 10000;
 
     //Addresses
@@ -38,6 +38,7 @@ public class Constants {
     public static final long ADDRESS_MASTER_INTERRUPTS = ADDRESS_STATE+1;
     public static final long ADDRESS_SLAVE_INTERRUPTS = ADDRESS_MASTER_INTERRUPTS+1;
     public static final long ADDRESS_WATCHDOG = ADDRESS_STATE + 4;
+    public static final long ADDRESS_MAX_TCP_CONNECTIONS = ADDRESS_WATCHDOG +4;
 
     //STATE_VALUES
     public static final byte STATE_CONNECTING = 1;
@@ -55,8 +56,8 @@ public class Constants {
     //Misc
     public static final int SOCKET_BUFFER_SIZE = 8096;
     public static final int PACKET_QUEUE_SIZE = 128;
-    //TODO turn this into parameter
-    public static final int MAX_CONCURRENT_TCP_CONNECTIONS = 128;
+
+    public static final int DEFAULT_MAX_CONCURRENT_TCP_CONNECTIONS = 128;
     public static final int MEMORY_OVERHEAD = 64;
     public static final int MIN_REQUIRED_MEMORY_SIZE = (2* RingBuffer.OVERHEAD) + MEMORY_OVERHEAD + 64;
 

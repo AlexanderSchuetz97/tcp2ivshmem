@@ -40,6 +40,17 @@ If not, see <https://www.gnu.org/licenses/>.
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Built-By>tcp2ivshmem</Built-By>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>7</source>
@@ -62,6 +73,9 @@ If not, see <https://www.gnu.org/licenses/>.
                         <manifest>
                             <mainClass>de.aschuetz.tcp2ivshmem.Main</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <Built-By>tcp2ivshmem</Built-By>
+                        </manifestEntries>
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>

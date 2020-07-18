@@ -47,9 +47,9 @@ public abstract class IvshmemBridge {
 
     protected TcpSocketContainer otherTcpContainer;
 
-    public IvshmemBridge(int myIndex, int otherIndex) {
-        ownTcpContainer = new TcpSocketContainer(this, myIndex, MAX_CONCURRENT_TCP_CONNECTIONS);
-        otherTcpContainer = new TcpSocketContainer(this, otherIndex, MAX_CONCURRENT_TCP_CONNECTIONS);
+    protected void init(int myIndex, int otherIndex) {
+        ownTcpContainer = new TcpSocketContainer(this, myIndex, Main.maxConcurrentTcpConnections);
+        otherTcpContainer = new TcpSocketContainer(this, otherIndex, Main.maxConcurrentTcpConnections);
     }
 
     public void sendUrgentPacket(AbstractPacket packet) throws IOException {
@@ -229,6 +229,8 @@ public abstract class IvshmemBridge {
                     handleData((Packet4Data) packet);
                     break;
                 case SERVER:
+                    handleServer((Packet5OpenServer) packet);
+                    break;
                 default:
                     System.out.println("Received invalid packet " + packet);
                     System.exit(-1);
@@ -245,7 +247,7 @@ public abstract class IvshmemBridge {
         TcpSocket sock;
         synchronized (addSocketMutex) {
             int current = index++;
-            index %= MAX_CONCURRENT_TCP_CONNECTIONS;
+            index %= Main.maxConcurrentTcpConnections;
 
             sock = ownTcpContainer.add(ownTcpContainer.getOffset() + current, socket);
         }

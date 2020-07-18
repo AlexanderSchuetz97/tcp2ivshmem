@@ -37,7 +37,7 @@ public class ConnectRingBufferForInput implements Callable<InputStream> {
     @Override
     public InputStream call() throws Exception {
         System.out.println("Connecting shared memory ring buffer for input  at address " + address +".");
-        RingBuffer tempBuf = new RingBuffer(Main.memory, address , SPIN_DATA_WITHOUT_INTERRUPTS,SPIN_DATA_WITH_INTERRUPTS);
+        RingBuffer tempBuf = new RingBuffer(Main.memory, address , Main.config.getSpinWithoutInterrupts(), Main.config.getSpinWithInterrupts());
         return tempBuf.connectInputStream(TIMEOUT_CONNECT, SPIN_CONNECT, TimeUnit.MILLISECONDS);
     }
 }

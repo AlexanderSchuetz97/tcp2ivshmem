@@ -21,7 +21,6 @@ package de.aschuetz.tcp2ivshmem;
 
 import de.aschuetz.ivshmem4j.util.RingBuffer;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +40,7 @@ public class ConnectRingBufferForOutput implements Callable<OutputStream> {
     @Override
     public OutputStream call() throws Exception {
         System.out.println("Connecting shared memory ring buffer for output at address " + address +".");
-        RingBuffer tempBuf = new RingBuffer(Main.memory, address , SPIN_DATA_WITHOUT_INTERRUPTS,SPIN_DATA_WITH_INTERRUPTS);
+        RingBuffer tempBuf = new RingBuffer(Main.memory, address , Main.config.getSpinWithoutInterrupts(), Main.config.getSpinWithInterrupts());
         tempBuf.cleanMemoryArea();
         try {
             if (interrupts) {

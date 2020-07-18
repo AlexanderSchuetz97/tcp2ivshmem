@@ -43,6 +43,12 @@ public final class Configuration {
 
     private Boolean interrupts;
 
+    private Long spinWithInterrupts;
+
+    private Long spinWithoutInterrupts;
+
+    private Integer maxTcpConnections;
+
     private Configuration() {
         //.
     }
@@ -156,6 +162,71 @@ public final class Configuration {
                     }
                     interrupts = false;
                     break;
+                case("-sni"):
+                    if (spinWithoutInterrupts != null) {
+                        throw new IllegalArgumentException("Spin time without interrupts already set " + args[i] + " at " + i + " is trying to set it again.");
+                    }
+
+                    if (i + 1 >= args.length) {
+                        throw new IllegalArgumentException(args[i] + " expected one more argument.");
+                    }
+
+                    try {
+                        spinWithoutInterrupts = Long.parseLong(args[i + 1]);
+                    } catch (NumberFormatException exc) {
+                        throw new IllegalArgumentException("Spin time without interrupts is not a valid number " + args[i] + " at " + i + " expected a positive number greater than 0 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+
+                    if (spinWithoutInterrupts <= 0) {
+                        throw new IllegalArgumentException("Spin time without interrupts is too small " + args[i] + " at " + i + " expected a number greater than 0 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+                    i++;
+                    break;
+                case("-si"):
+                    if (spinWithInterrupts != null) {
+                        throw new IllegalArgumentException("Spin time with interrupts already set " + args[i] + " at " + i + " is trying to set it again.");
+                    }
+
+                    if (i + 1 >= args.length) {
+                        throw new IllegalArgumentException(args[i] + " expected one more argument.");
+                    }
+
+                    try {
+                        spinWithInterrupts = Long.parseLong(args[i + 1]);
+                    } catch (NumberFormatException exc) {
+                        throw new IllegalArgumentException("Spin time with interrupts is not a valid number " + args[i] + " at " + i + " expected a positive number greater than 0 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+
+                    if (spinWithInterrupts <= 0) {
+                        throw new IllegalArgumentException("Spin time with interrupts is too small " + args[i] + " at " + i + " expected a number greater than 0 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+
+                    if (spinWithInterrupts < 500) {
+                        System.out.println("You have specified a spin time with interrupts of less than 500ms. Consider not using interrupts as what your trying to do here does not make sense.");
+                    }
+                    i++;
+                    break;
+                case("--max-connections"):
+                case("-mcon"):
+                    if (maxTcpConnections != null) {
+                        throw new IllegalArgumentException("Max TCP connection count already set " + args[i] + " at " + i + " is trying to set it again.");
+                    }
+
+                    if (i + 1 >= args.length) {
+                        throw new IllegalArgumentException(args[i] + " expected one more argument.");
+                    }
+
+                    try {
+                        maxTcpConnections = Integer.parseInt(args[i + 1]);
+                    } catch (NumberFormatException exc) {
+                        throw new IllegalArgumentException("Max TCP connection count is not a valid number " + args[i] + " at " + i + " expected a positive number greater than 0 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+
+                    if (maxTcpConnections <= 0) {
+                        throw new IllegalArgumentException("Max TCP connection count is too small " + args[i] + " at " + i + " expected a number greater than 0 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+                    i++;
+                    break;
                 default:
                     throw new IllegalArgumentException("Illegal argument " + args[i] + " at " + i);
             }
@@ -210,6 +281,8 @@ public final class Configuration {
     private void validateArgs() throws IllegalArgumentException {
         List<String> errors = new ArrayList<>();
 
+
+
         if (master == null) {
             errors.add("Operation mode is missing. Use -c or -s.");
         }
@@ -250,6 +323,17 @@ public final class Configuration {
             errors.add("Specifying the memory size is not supported on windows as it is determined by the qemu/ivshmem-server settings.");
         }
 
+        if (Boolean.FALSE.equals(interrupts) && spinWithInterrupts != null) {
+            errors.add("Spin time with interrupts cannot be set when not using interrupts.");
+        }
+
+        if (operatingSystem == OS.LINUX && linuxIsPlain && spinWithInterrupts != null) {
+            errors.add("Spin time with interrupts cannot be set when using ivshmem-plain.");
+        }
+
+        if (Boolean.FALSE.equals(master) && maxTcpConnections != null) {
+            errors.add("Only the master can set the max tcp connection count.");
+        }
 
         Set<Integer> errPorts = new HashSet<>();
         Set<Integer> ports = new HashSet<>();
@@ -312,8 +396,19 @@ public final class Configuration {
         return remote;
     }
 
-
     public Boolean useInterrupts() {
         return interrupts;
+    }
+
+    public long getSpinWithInterrupts() {
+        return spinWithInterrupts == null ? Constants.DEFAULT_SPIN_DATA_WITH_INTERRUPTS : spinWithInterrupts;
+    }
+
+    public Long getSpinWithoutInterrupts() {
+        return spinWithoutInterrupts == null ? Constants.DEFAULT_SPIN_DATA_WITHOUT_INTERRUPTS : spinWithoutInterrupts;
+    }
+
+    public Integer getMaxTcpConnections() {
+        return maxTcpConnections == null ? Constants.DEFAULT_MAX_CONCURRENT_TCP_CONNECTIONS : maxTcpConnections;
     }
 }

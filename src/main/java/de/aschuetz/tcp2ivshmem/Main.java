@@ -53,13 +53,18 @@ public class Main {
 
     public static long ringBufferSize;
 
+    public static int maxConcurrentTcpConnections;
+
     public static void printUsageAndExit() {
 
         String usage = "Ivshmem bridge: \n";
-        usage += "-m \t--master      \tMaster mode   \tEither -m or -s is mandatory never both. A bridge needs a master and a slave.\n";
-        usage += "-s \t--slave       \tSlave mode    \tEither -m or -s is mandatory never both. A bridge needs a master and a slave.\n";
-        usage += "-d \t--dev --device\tIvshmem device\tThe path or name to the Ivshmem device to use. Optional on windows if there is only 1 device.\n";
-        usage += "-ni\t              \tNo interrupts \tDisables interrupts on ivshmem-doorbell.\n";
+        usage += "-m   \t--master         \tMaster mode   \tEither -m or -s is mandatory never both. A bridge needs a master and a slave.\n";
+        usage += "-s   \t--slave          \tSlave mode    \tEither -m or -s is mandatory never both. A bridge needs a master and a slave.\n";
+        usage += "-d   \t--dev --device   \tIvshmem device\tThe path or name to the Ivshmem device to use. Optional on windows if there is only 1 device.\n";
+        usage += "-ni  \t                 \tNo interrupts \tDisables interrupts on ivshmem-doorbell.\n";
+        usage += "-si  \t                 \tSpin time     \tSets the spin time in ms when using interrupts defaults to 1000ms\n";
+        usage += "-sni \t                 \tSpin time     \tSets the spin time in ms when not using interrupts defaults to 10ms. This defines the maximum latency. Lower values will increase CPU usage.\n";
+        usage += "-mcon\t--max-connections\t              \tMaximum concurrent TCP connection count. Only settable by master. Defaults to 128.\n";
         usage+="\n";
         usage+="Linux specific:\n";
         usage+="-b \t--buffer  \tShared memory size in bytes\tOnly needed for ivshmem-plain. Only required if shared memory file does not yet exist.\n";
@@ -110,6 +115,8 @@ public class Main {
             System.out.println("Size: " + device.getSharedMemorySize() + " bytes Device: " + device.getNameAsString());
         }
 
+        System.out.println();
+        System.out.println("You may use either the size of the device or a part of the device path (uses \"contains\") to identify the device");
 
     }
 
@@ -158,7 +165,17 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        System.out.println("Tcp2ivshmem is free software released under the GNU General Public License v3.\n" +
+                "A copy of the GNU General Public License v3 should be provided in the COPYING file within this executable.\n" +
+                "If not see https://www.gnu.org/licenses/\n\n" +
+                "By using tcp2ivshmem you agree to the terms of the license agreement.\n\n");
+
         if (args == null || args.length == 0) {
+            printUsageAndExit();
+            return;
+        }
+
+        if (args.length == 1 && ("help".equalsIgnoreCase(args[0]) || "-help".equalsIgnoreCase(args[0]) || "--help".equalsIgnoreCase(args[0]))) {
             printUsageAndExit();
             return;
         }
@@ -176,6 +193,8 @@ public class Main {
             config = Configuration.create(args);
         } catch (IllegalArgumentException exc) {
             System.out.println(exc.getMessage());
+            System.out.println();
+            System.out.println();
             printUsageAndExit();
             return;
         }

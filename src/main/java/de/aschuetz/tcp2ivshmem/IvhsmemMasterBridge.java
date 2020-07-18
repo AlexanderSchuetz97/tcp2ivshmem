@@ -30,11 +30,6 @@ import static de.aschuetz.tcp2ivshmem.Constants.TIMEOUT_CONNECT;
 
 public class IvhsmemMasterBridge extends IvshmemBridge {
 
-
-    public IvhsmemMasterBridge() {
-        super(0, MAX_CONCURRENT_TCP_CONNECTIONS);
-    }
-
     protected void connectToIvshmem() throws Exception {
 
 
@@ -65,7 +60,11 @@ public class IvhsmemMasterBridge extends IvshmemBridge {
             Thread.sleep(SPIN_CONNECT);
         }
 
+        Main.maxConcurrentTcpConnections = Main.config.getMaxTcpConnections();
+        init(0, Main.maxConcurrentTcpConnections);
+
         Main.memory.write(ADDRESS_MASTER_INTERRUPTS, Main.useInterrupts ? USE_INTERRUPTS : DONT_USE_INTERRUPTS);
+        Main.memory.write(ADDRESS_MAX_TCP_CONNECTIONS, Main.maxConcurrentTcpConnections);
         Main.memory.write(ADDRESS_WATCHDOG, masterNr);
         IvshmemConnectionWatchdog.getInstance().start(masterNr);
 
@@ -96,6 +95,7 @@ public class IvhsmemMasterBridge extends IvshmemBridge {
         toIvshmem = outputStreamFuture.get(TIMEOUT_CONNECT, TimeUnit.MILLISECONDS);
 
         System.out.println("...Ring buffers connected. Master is ready for operation.");
+        System.out.println("Will accept " + Main.maxConcurrentTcpConnections + " maximum concurrent tcp connections");
     }
 
 }

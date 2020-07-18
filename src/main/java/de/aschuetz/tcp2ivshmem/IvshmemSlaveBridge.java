@@ -27,10 +27,6 @@ import static de.aschuetz.tcp2ivshmem.Constants.*;
 
 public class IvshmemSlaveBridge extends IvshmemBridge {
 
-    public IvshmemSlaveBridge() {
-        super(MAX_CONCURRENT_TCP_CONNECTIONS, 0);
-    }
-
     @Override
     protected void connectToIvshmem() throws Exception {
         System.out.println("Waiting for ivshmem connection from master...");
@@ -53,6 +49,14 @@ public class IvshmemSlaveBridge extends IvshmemBridge {
         }
 
         Main.useInterrupts &= Main.memory.read(ADDRESS_MASTER_INTERRUPTS) == USE_INTERRUPTS;
+        Main.maxConcurrentTcpConnections = Main.memory.readInt(ADDRESS_MAX_TCP_CONNECTIONS);
+        if (Main.maxConcurrentTcpConnections < 1) {
+            System.out.println("Max tcp connection count sent by master is " + Main.maxConcurrentTcpConnections + " this value is invalid shutting down.");
+            System.exit(-1);
+            return;
+        }
+        init(Main.maxConcurrentTcpConnections, 0);
+
         int watchdog = Main.memory.readInt(ADDRESS_WATCHDOG);
         Main.memory.write(ADDRESS_SLAVE_INTERRUPTS, Main.useInterrupts ? USE_INTERRUPTS : DONT_USE_INTERRUPTS);
 
@@ -80,6 +84,7 @@ public class IvshmemSlaveBridge extends IvshmemBridge {
         fromIvshmem = inputStreamFuture.get(TIMEOUT_CONNECT, TimeUnit.MILLISECONDS);
         toIvshmem = outputStreamFuture.get(TIMEOUT_CONNECT, TimeUnit.MILLISECONDS);
         System.out.println("...Ring buffers connected. Slave is ready for operation.");
+        System.out.println("Will accept " + Main.maxConcurrentTcpConnections + " maximum concurrent tcp connections");
     }
 
 
