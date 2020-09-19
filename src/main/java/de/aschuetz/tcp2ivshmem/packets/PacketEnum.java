@@ -49,6 +49,12 @@ public enum PacketEnum {
         public Packet5OpenServer create() {
             return new Packet5OpenServer();
         }
+    },
+    SERVER_RESULT(6) {
+        @Override
+        public Packet6OpenServerResult create() {
+            return new Packet6OpenServerResult();
+        }
     };
 
     final byte id;

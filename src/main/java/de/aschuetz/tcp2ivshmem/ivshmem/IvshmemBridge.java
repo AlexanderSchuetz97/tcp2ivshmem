@@ -17,10 +17,12 @@
  * in the COPYING file in top level directory of tcp2ivshmem.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package de.aschuetz.tcp2ivshmem;
+package de.aschuetz.tcp2ivshmem.ivshmem;
 
+import de.aschuetz.tcp2ivshmem.Main;
 import de.aschuetz.tcp2ivshmem.packets.*;
-import de.aschuetz.tcp2ivshmem.sockets.TcpServer;
+import de.aschuetz.tcp2ivshmem.servers.Socks5Server;
+import de.aschuetz.tcp2ivshmem.servers.TcpServer;
 import de.aschuetz.tcp2ivshmem.sockets.TcpSocket;
 import de.aschuetz.tcp2ivshmem.sockets.TcpSocketContainer;
 
@@ -30,7 +32,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
 
-import static de.aschuetz.tcp2ivshmem.Constants.*;
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.*;
 
 public abstract class IvshmemBridge {
 
@@ -60,7 +62,6 @@ public abstract class IvshmemBridge {
                 System.out.println("FIN Sending.  Tracking id: " + ((Packet2Fin)packet).getId());
                 break;
             case RST:
-                new Exception(""+((Packet3Rst)packet).getId()).printStackTrace();
                 System.out.println("RST Sending.  Tracking id: " +  ((Packet3Rst)packet).getId());
                 break;
             case DATA:
@@ -137,7 +138,16 @@ public abstract class IvshmemBridge {
     protected abstract void connectToIvshmem() throws Exception;
 
     protected void handleConnect(Packet1Connect packet) throws IOException {
-        Socket socket = new Socket(packet.getHost(), packet.getPort());
+
+        Socket socket;
+        try {
+            socket = new Socket(packet.getHost(), packet.getPort());
+        } catch (IOException exc) {
+            System.out.println("New connection to /" + packet.getHost() + ":" + packet.getPort() + " failed " + exc.getMessage());
+            sendUrgentPacket(PacketUtil.rst(packet.getId()));
+            otherTcpContainer.rst(packet.getId());
+            return;
+        }
         System.out.println("New connection to /" + packet.getHost() + ":" + packet.getPort() + " from " + socket.getLocalPort() + ". We handle the server side connection. Tracking id: " + packet.getId());
         otherTcpContainer.add(packet.getId(), socket).start();
     }
@@ -174,20 +184,54 @@ public abstract class IvshmemBridge {
     }
 
     protected void handleServer(Packet5OpenServer packet) throws IOException {
+
         ServerSocket serverSocket;
-        if (packet.getBindAddress() == null) {
-            serverSocket = new ServerSocket(packet.getBindPort());
-        } else {
-            serverSocket = new ServerSocket(packet.getBindPort(), 50, InetAddress.getByName(packet.getBindAddress()));
+        try {
+            if (packet.getBindAddress() == null) {
+                serverSocket = new ServerSocket(packet.getBindPort());
+            } else {
+
+                serverSocket = new ServerSocket(packet.getBindPort(), 50, InetAddress.getByName(packet.getBindAddress()));
+            }
+        } catch (Exception exc) {
+            System.out.println("New TCP Server on addr " + packet.getBindAddress() + " port " + packet.getBindPort() + " failed " + exc.getMessage());
+            sendUrgentPacket(PacketUtil.serverResult(packet.getId(), false));
+            return;
         }
+        sendUrgentPacket(PacketUtil.serverResult(packet.getId(), true));
 
         System.out.println("New TCP Server on " + serverSocket.getLocalSocketAddress() + ".");
         new TcpServer(this, serverSocket, packet.getDestinationAddress(), packet.getDestinationPort()).start();
     }
 
-    public void addServer(ServerSocket server, String destinationAddress, int desintationPort) {
+    protected final OpenServerTransferObject[] openServerTransferObjects = new OpenServerTransferObject[16];
+
+    protected void handleServerResult(Packet6OpenServerResult packet) {
+        OpenServerTransferObject obj = openServerTransferObjects[packet.getId() % openServerTransferObjects.length];
+        if (obj == null) {
+            System.out.println("Received unexpected open server result");
+            return;
+        }
+        synchronized (obj) {
+            if (obj.id != packet.getId()) {
+                System.out.println("Received unexpected open server result");
+                return;
+            }
+
+            obj.result = packet;
+            obj.notifyAll();
+        }
+    }
+
+
+    public void addServer(ServerSocket server, String destinationAddress, int destinationPort) {
         System.out.println("New TCP Server on " + server.getLocalSocketAddress() + ".");
-        new TcpServer(this, server, destinationAddress, desintationPort).start();
+        new TcpServer(this, server, destinationAddress, destinationPort).start();
+    }
+
+    public void addSocks5Proxy(ServerSocket server) {
+        System.out.println("New Socks5 Server on " + server.getLocalSocketAddress() + ".");
+        new Socks5Server(this, server).start();
     }
 
 
@@ -231,6 +275,9 @@ public abstract class IvshmemBridge {
                 case SERVER:
                     handleServer((Packet5OpenServer) packet);
                     break;
+                case SERVER_RESULT:
+                    handleServerResult((Packet6OpenServerResult) packet);
+                    break;
                 default:
                     System.out.println("Received invalid packet " + packet);
                     System.exit(-1);
@@ -257,4 +304,68 @@ public abstract class IvshmemBridge {
         sock.start();
         System.out.println("New connection to /" + remoteAddress + ":" + remotePort + " from " + socket.getRemoteSocketAddress() + " using " + socket.getLocalPort() + ". We handle the client side connection. Tracking id: " + (sock.getId()));
     }
+
+    public boolean openServerOnRemote(String bindAddr, int port, String destinationAddress, int destinationPort) throws IOException {
+        Packet5OpenServer srv = PacketUtil.server(bindAddr, port, destinationAddress, destinationPort);
+        OpenServerTransferObject transferObject = new OpenServerTransferObject();
+        transferObject.id = srv.getId();
+        synchronized (openServerTransferObjects) {
+            while (openServerTransferObjects[srv.getId() % openServerTransferObjects.length] != null) {
+                try {
+                    openServerTransferObjects.wait();
+                } catch (InterruptedException e) {
+                    throw new IOException(e);
+                }
+            }
+
+            openServerTransferObjects[srv.getId() % openServerTransferObjects.length] = transferObject;
+        }
+
+        boolean success = false;
+
+        sendUrgentPacket(srv);
+        synchronized (transferObject) {
+            if (transferObject.result == null) {
+                try {
+                    transferObject.wait(15000);
+                } catch (InterruptedException e) {
+                    throw new IOException();
+                }
+            }
+
+            if (transferObject.result == null) {
+                //TODO better handling.
+                System.out.println("Timeout while waiting for remote to open a server!");
+                System.exit(-1);
+                return false;
+            }
+
+            success = transferObject.result.isSuccess();
+        }
+
+        synchronized (openServerTransferObjects) {
+            openServerTransferObjects[srv.getId() % openServerTransferObjects.length] = null;
+            openServerTransferObjects.notifyAll();
+        }
+
+
+        if (bindAddr == null) {
+            bindAddr = "*";
+        }
+
+        if (success) {
+            System.out.println("Opening a remote TCP server succeeded bind address " + bindAddr + " bind port " + port + " destination " + destinationAddress + " destination port " + destinationPort);
+        } else {
+            System.out.println("Opening a remote TCP server failed bind address " + bindAddr + " bind port " + port + " destination " + destinationAddress + " destination port " + destinationPort);
+        }
+        return success;
+    }
+
+    //Transfer object for inter thread communication. CompletableFuture is in JDK 8 sadly and i dont want to include GUAVA for SettableFuture...
+    class OpenServerTransferObject {
+        int id;
+        volatile Packet6OpenServerResult result;
+    }
+
+
 }

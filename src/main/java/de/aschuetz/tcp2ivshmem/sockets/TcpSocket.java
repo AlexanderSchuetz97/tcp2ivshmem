@@ -19,7 +19,7 @@
  */
 package de.aschuetz.tcp2ivshmem.sockets;
 
-import de.aschuetz.tcp2ivshmem.IvshmemBridge;
+import de.aschuetz.tcp2ivshmem.ivshmem.IvshmemBridge;
 import de.aschuetz.tcp2ivshmem.Main;
 import de.aschuetz.tcp2ivshmem.packets.PacketUtil;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static de.aschuetz.tcp2ivshmem.Constants.*;
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.*;
 
 public class TcpSocket {
 

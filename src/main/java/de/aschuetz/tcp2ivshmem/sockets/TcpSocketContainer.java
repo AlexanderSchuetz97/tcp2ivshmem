@@ -19,7 +19,7 @@
  */
 package de.aschuetz.tcp2ivshmem.sockets;
 
-import de.aschuetz.tcp2ivshmem.IvshmemBridge;
+import de.aschuetz.tcp2ivshmem.ivshmem.IvshmemBridge;
 import de.aschuetz.tcp2ivshmem.packets.PacketUtil;
 
 import java.io.IOException;

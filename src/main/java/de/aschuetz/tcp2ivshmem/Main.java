@@ -29,7 +29,12 @@ import de.aschuetz.ivshmem4j.windows.IvshmemWindowsDevice;
 import de.aschuetz.tcp2ivshmem.config.Configuration;
 import de.aschuetz.tcp2ivshmem.config.Forwarding;
 import de.aschuetz.tcp2ivshmem.config.OS;
+import de.aschuetz.tcp2ivshmem.ivshmem.Constants;
+import de.aschuetz.tcp2ivshmem.ivshmem.IvhsmemMasterBridge;
+import de.aschuetz.tcp2ivshmem.ivshmem.IvshmemBridge;
+import de.aschuetz.tcp2ivshmem.ivshmem.IvshmemSlaveBridge;
 import de.aschuetz.tcp2ivshmem.packets.PacketUtil;
+import de.aschuetz.tcp2ivshmem.servers.Socks5Server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -77,6 +82,8 @@ public class Main {
         usage+="Forwading:\n";
         usage+="-L\t-L lport:dst:dstport\t Static forwarding from local tcp port lport to address dst tcp port dstport.\n";
         usage+="-R\t-R rport:dst:dstport\t Static forwarding from remote tcp port rport to address dst tcp port dstport.\n";
+        usage+="-D\t-D port             \t Start a local Socks5 proxy server on the port. (Only Accepts TCP connections)\n";
+
 
 
 
@@ -279,9 +286,24 @@ public class Main {
             }
         }
 
+        for (Integer socks5Port : config.getSocks5proxies()) {
+            try {
+                ServerSocket socket = new ServerSocket(socks5Port);
+                bridge.addSocks5Proxy(socket);
+            } catch (IOException e) {
+                System.out.println("Creating SOCKS5 proxy server failed. Port: " + socks5Port + " Err: " + e.getMessage());
+                System.exit(-1);
+                return;
+            }
+        }
+
         for (Forwarding forwarding : config.getRemote()) {
             try {
-                bridge.sendUrgentPacket(PacketUtil.server(null, forwarding.getPort(), forwarding.getAddress(), forwarding.getAddressPort()));
+                if (!bridge.openServerOnRemote(null, forwarding.getPort(), forwarding.getAddress(), forwarding.getAddressPort())) {
+                    System.out.println("Creating remote TCP server for remote forwarding failed. Port: " + forwarding.getPort());
+                    System.exit(-1);
+                    return;
+                }
             } catch (IOException e) {
                 System.out.println("Creating remote TCP server for remote forwarding failed. Port: " + forwarding.getPort() + " Err: " + e.getMessage());
                 System.exit(-1);

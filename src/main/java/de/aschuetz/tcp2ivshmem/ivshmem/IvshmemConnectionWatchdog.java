@@ -17,10 +17,11 @@
  * in the COPYING file in top level directory of tcp2ivshmem.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package de.aschuetz.tcp2ivshmem;
+package de.aschuetz.tcp2ivshmem.ivshmem;
 
 import de.aschuetz.ivshmem4j.api.SharedMemoryException;
 import de.aschuetz.ivshmem4j.common.ErrorCodeEnum;
+import de.aschuetz.tcp2ivshmem.Main;
 
 public class IvshmemConnectionWatchdog {
 

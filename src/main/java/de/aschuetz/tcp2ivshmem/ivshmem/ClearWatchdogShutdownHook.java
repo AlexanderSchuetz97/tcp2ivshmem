@@ -17,10 +17,12 @@
  * in the COPYING file in top level directory of tcp2ivshmem.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package de.aschuetz.tcp2ivshmem;
+package de.aschuetz.tcp2ivshmem.ivshmem;
 
-import static de.aschuetz.tcp2ivshmem.Constants.ADDRESS_STATE;
-import static de.aschuetz.tcp2ivshmem.Constants.ADDRESS_WATCHDOG;
+import de.aschuetz.tcp2ivshmem.Main;
+
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.ADDRESS_STATE;
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.ADDRESS_WATCHDOG;
 
 public class ClearWatchdogShutdownHook extends Thread {
 

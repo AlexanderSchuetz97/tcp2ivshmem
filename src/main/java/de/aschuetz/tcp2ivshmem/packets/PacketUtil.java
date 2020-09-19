@@ -20,6 +20,7 @@
 package de.aschuetz.tcp2ivshmem.packets;
 
 import java.io.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PacketUtil {
 
@@ -70,12 +71,22 @@ public class PacketUtil {
         dataOutputStream.flush();
     }
 
+    private static final AtomicInteger SERVER_ID_COUNTER = new AtomicInteger(0);
+
     public static Packet5OpenServer server(String bindAddress, int bindPort, String destinationAddress, int destinationPort) {
         Packet5OpenServer srv = PacketEnum.SERVER.create();
+        srv.setId(SERVER_ID_COUNTER.getAndIncrement());
         srv.setBindAddress(bindAddress);
         srv.setBindPort(bindPort);
         srv.setDestinationAddress(destinationAddress);
         srv.setDestinationPort(destinationPort);
         return srv;
+    }
+
+    public static Packet6OpenServerResult serverResult(int id, boolean success) {
+        Packet6OpenServerResult res = PacketEnum.SERVER_RESULT.create();
+        res.setId(id);
+        res.setSuccess(success);
+        return res;
     }
 }

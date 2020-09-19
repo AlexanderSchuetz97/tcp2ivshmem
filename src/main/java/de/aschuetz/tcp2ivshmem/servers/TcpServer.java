@@ -17,9 +17,9 @@
  * in the COPYING file in top level directory of tcp2ivshmem.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package de.aschuetz.tcp2ivshmem.sockets;
+package de.aschuetz.tcp2ivshmem.servers;
 
-import de.aschuetz.tcp2ivshmem.IvshmemBridge;
+import de.aschuetz.tcp2ivshmem.ivshmem.IvshmemBridge;
 import de.aschuetz.tcp2ivshmem.Main;
 
 import java.io.IOException;
@@ -41,7 +41,6 @@ public class TcpServer {
         this.ivshmemBridge = ivshmemBridge;
         this.remoteAddress = remoteAddress;
         this.remotePort = remotePort;
-
     }
 
     public void start() {

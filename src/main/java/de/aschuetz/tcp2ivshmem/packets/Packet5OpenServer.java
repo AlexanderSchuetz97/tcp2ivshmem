@@ -25,6 +25,8 @@ import java.io.IOException;
 
 public class Packet5OpenServer extends AbstractPacket {
 
+    private int id;
+
     private String bindAddress;
 
     private int bindPort;
@@ -39,6 +41,7 @@ public class Packet5OpenServer extends AbstractPacket {
 
     @Override
     public void read(DataInputStream dataInputStream) throws IOException {
+        id = dataInputStream.readInt();
         if (dataInputStream.readBoolean()) {
             bindAddress = dataInputStream.readUTF();
         } else {
@@ -57,6 +60,7 @@ public class Packet5OpenServer extends AbstractPacket {
 
     @Override
     public void write(DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeInt(id);
         dataOutputStream.writeBoolean(bindAddress != null);
         if (bindAddress != null) {
             dataOutputStream.writeUTF(bindAddress);
@@ -70,6 +74,14 @@ public class Packet5OpenServer extends AbstractPacket {
         }
 
         dataOutputStream.writeShort(destinationPort);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getBindAddress() {

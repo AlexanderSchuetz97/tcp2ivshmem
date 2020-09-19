@@ -17,15 +17,16 @@
  * in the COPYING file in top level directory of tcp2ivshmem.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package de.aschuetz.tcp2ivshmem;
+package de.aschuetz.tcp2ivshmem.ivshmem;
 
 import de.aschuetz.ivshmem4j.util.RingBuffer;
+import de.aschuetz.tcp2ivshmem.Main;
 
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static de.aschuetz.tcp2ivshmem.Constants.*;
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.*;
 
 public class ConnectRingBufferForInput implements Callable<InputStream> {
     private long address;

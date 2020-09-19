@@ -21,7 +21,7 @@ package de.aschuetz.tcp2ivshmem.config;
 
 import de.aschuetz.ivshmem4j.api.SharedMemoryException;
 import de.aschuetz.ivshmem4j.windows.IvshmemWindowsDevice;
-import de.aschuetz.tcp2ivshmem.Constants;
+import de.aschuetz.tcp2ivshmem.ivshmem.Constants;
 
 import java.util.*;
 
@@ -40,6 +40,8 @@ public final class Configuration {
     private final Collection<Forwarding> local = new ArrayList<>();
 
     private final Collection<Forwarding> remote = new ArrayList<>();
+
+    private final Collection<Integer> socks5proxies = new ArrayList<>();
 
     private Boolean interrupts;
 
@@ -154,6 +156,24 @@ public final class Configuration {
                         throw new IllegalArgumentException(args[i] + " expected one more argument.");
                     }
                     remote.add(parseForwarding(args[i+1]));
+                    i++;
+                    break;
+                case("-D"):
+                    if (i + 1 >= args.length) {
+                        throw new IllegalArgumentException(args[i] + " expected one more argument.");
+                    }
+                    int socksPort;
+                    try {
+                        socksPort = Integer.parseInt(args[i + 1]);
+                    } catch (NumberFormatException exc) {
+                        throw new IllegalArgumentException("Socks5 port is not a valid number " + args[i] + " at " + i + " expected a number between 1 and 65565 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+
+                    if (socksPort < 1 || socksPort > 65565) {
+                        throw new IllegalArgumentException("Socks5 port is not a valid number " + args[i] + " at " + i + " expected a number between 1 and 65565 at " + (i + 1) + " but got " + args[i + 1]);
+                    }
+
+                    socks5proxies.add(socksPort);
                     i++;
                     break;
                 case("-ni"):
@@ -394,6 +414,10 @@ public final class Configuration {
 
     public Collection<Forwarding> getRemote() {
         return remote;
+    }
+
+    public Collection<Integer> getSocks5proxies() {
+        return socks5proxies;
     }
 
     public Boolean useInterrupts() {

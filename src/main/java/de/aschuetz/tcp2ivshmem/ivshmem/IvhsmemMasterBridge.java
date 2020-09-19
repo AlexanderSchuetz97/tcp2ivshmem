@@ -17,7 +17,9 @@
  * in the COPYING file in top level directory of tcp2ivshmem.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package de.aschuetz.tcp2ivshmem;
+package de.aschuetz.tcp2ivshmem.ivshmem;
+
+import de.aschuetz.tcp2ivshmem.Main;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,8 +27,8 @@ import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static de.aschuetz.tcp2ivshmem.Constants.*;
-import static de.aschuetz.tcp2ivshmem.Constants.TIMEOUT_CONNECT;
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.*;
+import static de.aschuetz.tcp2ivshmem.ivshmem.Constants.TIMEOUT_CONNECT;
 
 public class IvhsmemMasterBridge extends IvshmemBridge {
 
