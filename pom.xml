@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-Copyright Alexander Schütz, 2020
-
-This file is part of tcp2ivshmem.
-
-tcp2ivshmem is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-tcp2ivshmem is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-A copy of the GNU General Public License should be provided
-in the COPYING file in top level directory of Ivshmem4j.
-If not, see <https://www.gnu.org/licenses/>.
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.aschuetz</groupId>
+    <groupId>io.github.alexanderschuetz97</groupId>
     <artifactId>tcp2ivshmem</artifactId>
     <version>0.2-SNAPSHOT</version>
     <build>
@@ -71,7 +52,7 @@ If not, see <https://www.gnu.org/licenses/>.
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.aschuetz.tcp2ivshmem.Main</mainClass>
+                            <mainClass>io.github.alexanderschuetz97.tcp2ivshmem.Main</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Built-By>tcp2ivshmem</Built-By>
@@ -87,9 +68,15 @@ If not, see <https://www.gnu.org/licenses/>.
 
     <dependencies>
         <dependency>
-            <groupId>de.aschuetz</groupId>
+            <groupId>io.github.alexanderschuetz97</groupId>
             <artifactId>ivshmem4j</artifactId>
-            <version>1.1</version>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
